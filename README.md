@@ -7,6 +7,10 @@ Exploring a better HTML page for Flipper as a VSCode extension.
 - Toggle between different data views: Original NS lines, NS app as JSON, and the fast template HTML.
 - Display JSON data using Monaco Editor.
 
+## example
+
+![Flipper Webview](./flipperWebView_v0.0.2.png)
+
 ## Usage
 
 1. Open the Command Palette (Ctrl+Shift+P).
