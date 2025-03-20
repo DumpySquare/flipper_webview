@@ -1,0 +1,61 @@
+body {
+    margin: 5px;
+    padding: 5px;
+    font-size: 15px;
+    background-color: #1e1e1e; /* VSCode editor background */
+    color: #e7e7e7d7; /* VSCode editor foreground */
+}
+nav {
+    background-color: #252526; /* VSCode sidebar background */
+    margin: 2px;
+    overflow: hidden;
+}
+nav ul {
+    margin: 2px;
+    padding: 5px;
+}
+nav ul li {
+    display: inline-block;
+    list-style-type: none;
+}
+ 
+/* Create a style for the first level items */
+
+button {
+    color: #e7e7e7d7; /* VSCode button text */
+    background-color: #0e639c; /* VSCode button background */
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+button:hover {
+    background-color: #1177bb; /* VSCode button hover background */
+}
+
+.container {
+    display: flex;
+    flex-direction: row;
+    width: 100%; /* Take up the entire width of the available screen */
+    padding-left: 0; /* Remove space on the left */
+}
+
+.col {
+    flex: 1;
+    margin: 5px;
+}
+
+.dragbar {
+    width: 5px;
+    cursor: col-resize;
+    background-color: #5d5dbb;
+    height: 100%;
+}
+.dragbar:hover {
+    background-color: #007acc;
+}
+
+
+
+
+
