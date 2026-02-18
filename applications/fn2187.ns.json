@@ -54,12 +54,14 @@
                     {
                         "name": "bb8-01.jaku.dev",
                         "port": "80",
-                        "hostname": "bb8-01.jaku.dev"
+                        "hostname": "bb8-01.jaku.dev",
+                        "-state": "DISABLED"
                     },
                     {
                         "name": "bb8-05",
                         "port": "80",
-                        "address": "28.28.28.97"
+                        "address": "28.28.28.97",
+                        "-state": "DISABLED"
                     },
                     {
                         "name": "bb8-06.jaku.dev",
@@ -94,6 +96,9 @@
                     }
                 ]
             }
+        ],
+        "certs": [
+            {}
         ]
     },
     "diagnostics": [],
@@ -116,14 +121,16 @@
                 "fqdn": {
                     "hostname": "bb8-01.jaku.dev",
                     "name": "bb8-01.jaku.dev",
-                    "port": "80"
+                    "port": "80",
+                    "state": "DISABLED"
                 }
             },
             {
                 "address": {
                     "name": "bb8-05",
                     "address": "28.28.28.97",
-                    "port": "80"
+                    "port": "80",
+                    "state": "DISABLED"
                 }
             },
             {

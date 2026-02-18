@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>FAST Templates Workbench 1</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="./styles/vscode.css"> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+    integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous" />
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <div id="editor">
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@2.5.1/dist/jsoneditor.min.js"></script>
+  
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+    crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@json-editor/json-editor@2.5.1/dist/jsoneditor.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <script>
+        let schema, params, template;
+        const fileName = './HTTP2.yaml';
+
+        async function fetchTemplate(fileName) {
+            try {
+                const response = await fetch(fileName);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch file: ${response.statusText}`);
+                }
+                const yamlContent = await response.text();
+                // console.log('YAML Content:', yamlContent);
+                const jsonData = jsyaml.load(yamlContent, { json: true }); // Convert YAML to JSON
+                console.log('Converted JSON:', jsonData);
+
+                params = jsonData.parameters;
+                template = jsonData.template;
+
+                const properties = jsonData.definitions;
+                jsonData.properties = properties;
+                delete jsonData.definitions;
+                delete jsonData.contentType;
+                delete jsonData.parameters;
+                delete jsonData.template;
+
+                schema = jsonData;
+                console.log("new schema: ", schema);
+                console.log("params: ", params);
+            } catch (error) {
+                console.error('Error loading or parsing file:', error);
+            }
+        }
+
+        async function fetchFileNames() {
+            const response = await fetch('.');
+            const text = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
+            const files = Array.from(doc.querySelectorAll('a'))
+                .map(a => a.textContent)
+                .filter(file => file.endsWith('.yaml' || '.yml')); // Filter only .yaml files
+            return files;
+        }
+
+        async function populateDropdown() {
+            const dropdown = document.getElementById('additionalDropdown');
+            const files = await fetchFileNames();
+            files.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file;
+                option.textContent = file;
+                dropdown.appendChild(option);
+                if (file === 'HTTP2.yaml') {
+                    option.selected = true;
+                }
+            });
+        }
+
+        async function handleDropdownChange(event) {
+            const selectedFile = event.target.value;
+            console.log("Selected file: ", selectedFile);
+            await fetchTemplate(selectedFile);
+            createEditor(schema, params);
+        }
+
+        function createEditor(schema, params) {
+            const editor = new JSONEditor(document.getElementById('editor'), {
+                schema: schema,
+                startval: params,
+                compact: true,
+                show_errors: 'always',
+                disable_edit_json: true,
+                disable_properties: true,
+                disable_collapse: true,
+                array_controls_top: true,
+                disable_array_reorder: true,
+                disable_array_delete_last_row: true,
+                object_layout: 'grid',
+                theme: 'bootstrap3'
+            });
+        }
+
+        async function initializePage() {
+            await populateDropdown();
+            await fetchTemplate(fileName);
+            createEditor(schema, params);
+        }
+
+        document.getElementById('refreshButton').addEventListener('click', () => {
+            console.log("refreshed schema: ", schema);
+            console.log("refreshed params: ", params);
+            createEditor(schema, params);
+        });
+
+        initializePage();
+    </script>
+    
+</body>
+
+
+</html>

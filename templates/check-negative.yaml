@@ -1,0 +1,92 @@
+title: HTTP Application Template
+description: FAST Template for NS HTTP Application
+note: something about the template, does not affect the rest template
+date: 05/20/2025
+contentType: application/json
+options:
+  required_by_default: true
+definitions:
+  app_name:
+    title: Application name
+    type: string
+    propertyOrder: 1
+    options:
+      input_width: 300px
+  default_monitor:
+    title: Use Default HTTP Monitor?
+    type: boolean
+    default: true
+    options:
+      input_width: 300px
+  enable_monitor:
+    title: Enable Pool Monitor
+    type: boolean
+    default: true
+  make_monitor:
+    title: Make Monitor
+    type: boolean
+    default: true
+  create_monitor:
+    title: Custom HTTP Monitor Details
+    type: object
+    options:
+      dependencies:
+        make_monitor: true
+    properties:
+      monitor_interval:
+        title: Interval
+        description: Set the time between health checks, in seconds.
+        type: integer
+        default: 30
+      monitor_timeout:
+        type: integer
+        title: Timeout
+        default: 91
+      send:
+        title: Send
+        type: string
+        default: "GET /"
+      receive:
+        title: Receive
+        type: string
+
+parameters:
+    app_name: fn2187
+    health_monitor:
+      type: http
+      send: "GET /look/within"
+      receive: 'find:love'
+template: |
+  {
+      "{{app_name}}-app": {
+            {{#enable_monitor}}
+              {{#make_monitor}}{{#create_monitor}}
+                "{{app_name}}_monitor": {
+                  "class": "Monitor",
+                  "note": "we create monitor",
+                  "interval": {{interval}},
+                  "timeout": {{timeout}},
+                  {{#send}}
+                  "send": "{{send}}",
+                  {{/send}}
+                  {{#receive}}
+                  "recv": "{{receive}}",
+                  {{/receive}}
+                },
+                "{{app_name}}_pool": {
+                  "monitors": [{
+                    "use": "{{app_name}}_monitor"
+                  }]
+                }
+              {{/create_monitor}}{{/make_monitor}}
+              {{^make_monitor}}
+                "{{app_name}}_pool": {
+                  "monitors": [{
+                    "bigip": "{{monitor_name}}"
+                  }]
+                }
+              {{/make_monitor}}
+            {{/enable_monitor}}
+      }
+  }
+

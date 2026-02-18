@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>FAST Templates Workbench 1</title>
+    <link rel="stylesheet" href="../media/bootstrap.min.css">
+
+</head>
+
+<body>
+    <div id="navbar">
+            <a class="navbar-brand">FAST Templates Workbench</a>
+            <div class="d-flex">
+                <select id="additionalDropdown">
+                    <option id="templateSelect" disabled selected>Select a file</option>
+
+                </select>
+                <button id="refreshButton" >Refresh</button>
+            </div>
+        </div>
+    <div id="editor">
+    </div>
+
+    <script src="../media/jsoneditor.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <script>
+        let schema, params, template;
+        const fileName = './HTTP2.yaml';
+
+        async function fetchTemplate(fileName) {
+            try {
+                const response = await fetch(fileName);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch file: ${response.statusText}`);
+                }
+                const yamlContent = await response.text();
+                // console.log('YAML Content:', yamlContent);
+                const jsonData = jsyaml.load(yamlContent, { json: true }); // Convert YAML to JSON
+                console.log('Converted JSON:', jsonData);
+
+                params = jsonData.parameters;
+                template = jsonData.template;
+
+                const properties = jsonData.definitions;
+                jsonData.properties = properties;
+                delete jsonData.definitions;
+                delete jsonData.contentType;
+                delete jsonData.parameters;
+                delete jsonData.template;
+
+                schema = jsonData;
+                console.log("new schema: ", schema);
+                console.log("params: ", params);
+            } catch (error) {
+                console.error('Error loading or parsing file:', error);
+            }
+        }
+
+        async function fetchFileNames() {
+            const response = await fetch('.');
+            const text = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
+            const files = Array.from(doc.querySelectorAll('a'))
+                .map(a => a.textContent)
+                .filter(file => file.endsWith('.yaml' || '.yml')); // Filter only .yaml files
+            return files;
+        }
+
+        async function populateDropdown() {
+            const dropdown = document.getElementById('additionalDropdown');
+            const files = await fetchFileNames();
+            files.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file;
+                option.textContent = file;
+                dropdown.appendChild(option);
+                if (file === 'HTTP2.yaml') {
+                    option.selected = true;
+                }
+            });
+        }
+
+        async function handleDropdownChange(event) {
+            const selectedFile = event.target.value;
+            console.log("Selected file: ", selectedFile);
+            await fetchTemplate(selectedFile);
+            createEditor(schema, params);
+        }
+
+        function createEditor(schema, params) {
+            const editor = new JSONEditor(document.getElementById('editor'), {
+                schema: schema,
+                startval: params,
+                compact: true,
+                show_errors: 'always',
+                disable_edit_json: true,
+                disable_properties: true,
+                disable_collapse: true,
+                array_controls_top: true,
+                disable_array_reorder: true,
+                disable_array_delete_last_row: true,
+                object_layout: 'grid',
+                theme: 'bootstrap3'
+            });
+        }
+
+        async function initializePage() {
+            await populateDropdown();
+            await fetchTemplate(fileName);
+            createEditor(schema, params);
+        }
+
+        document.getElementById('refreshButton').addEventListener('click', () => {
+            console.log("refreshed schema: ", schema);
+            console.log("refreshed params: ", params);
+            createEditor(schema, params);
+        });
+
+        initializePage();
+    </script>
+    
+</body>
+
+
+</html>

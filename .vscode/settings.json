@@ -28,5 +28,6 @@
         "titleBar.inactiveBackground": "#101c2e99",
         "titleBar.inactiveForeground": "#e7e7e799"
     },
-    "peacock.remoteColor": "#101c2e"
+    "peacock.remoteColor": "#101c2e",
+    "livePreview.defaultPreviewPath": "/exampleFAST.html"
 }

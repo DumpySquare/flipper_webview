@@ -2,60 +2,41 @@ title: HTTP Application Template
 description: NS HTTP app
 contentType: application/json
 definitions:
-  tenant_name:
-    title: Tenant name
-    type: string
-    propertyOrder: 1
   app_name:
     title: Application name
+    type: string
+    propertyOrder: 1
+    options:
+      input_width: 300px
+  tenant:
+    title: Tenant name
     type: string
     propertyOrder: 2
     options:
       input_width: 300px
-  vip_a:
+  vip:
     title: Virtual IP
-    description: Virtual IP address
     type: object
     format: grid
     options:
-      grid_columns: 2
-      disable_collapse: false
-      disable_properties: false
-      disable_edit_json: false
+        titleHidden: true
     properties:
-      va:
-        title: Virtual a
-        type: string 
-      vp:
-        title: Virtual port
-        type: integer
-      icmp_echo:
-        type: boolean
-        title: ICMP echo
-        default: true
-      arpEnabled:
-        type: boolean
-        title: ARP enabled
-        default: true    
-  virtual_address:
-    title: Virtual address
-    propertyOrder: 3
-    type: string
-    options:
-      input_width: 300px
-  virtual_port:
-    title: Virtual port
-    type: integer
-    options:
-      input_width: 300px
-  icmp_echo:
-    type: boolean
-    title: ICMP echo
-    default: true
-  arpEnabled:
-    type: boolean
-    title: ARP enabled
-    default: true
+        va:
+            title: Virtual Address
+            type: string
+        vp:
+            title: Virtual port
+            type: integer
+        icmp_echo:
+            type: boolean
+            title: ICMP echo
+            format: checkbox
+            default: true
+        arpEnabled:
+            type: boolean
+            title: ARP enabled
+            format: checkbox
+            default: true
   idleTimeout:
     type: integer 
     default: 300
@@ -123,7 +104,6 @@ definitions:
         - port
         - address
         - adminState
-
   fqdn_members:
     title: FQDN Pool members
     description: List of FQDN pool members details
@@ -145,7 +125,7 @@ definitions:
             - ENABLED
             - DISABLED
             - OFFLINE
-          default: "ENABLE"
+          default: "ENABLED"
         shared-nodes:
           title: Shared nodes
           type: boolean
@@ -154,7 +134,6 @@ definitions:
         - hostname
         - port
         - adminState
-
   h_monitor:
     title: Single Health monitor
     type: object
@@ -226,9 +205,13 @@ definitions:
           type: string
 
 parameters:
-    virtual_address: 50.5.2.2
     app_name: fn2187
-    virtual_port: 80
+    tenant: jaku
+    vip:
+      va: 50.5.2.2
+      vp: 80
+      icmp_echo: true
+      arpEnabled: true
     pool_members:
     -
         name: bb8-05
@@ -282,19 +265,19 @@ template: |
       "class": "ADC",
       "schemaVersion": "3.45.0",
       "id": "urn:uuid:0209b091-aec0-47ff-8da0-cdf10eb6daf6",
-      "t_{{virtual_address}}": {
+      "t_{{tenant}}": {
         "class": "Tenant",
         "{{app_name}}-app": {
           "class": "Application",
           "template": "shared",
-          {{#virtual_address}}
-          "sa_{{address}}": {
+          {{#vip}}
+          "sa_{{va}}": {
             "class": "Service_Address",
             "icmpEcho": "{{icmp_echo}}",
             "arpEnabled": {{arpEnabled}},
-            "virtualAddress": "{{address}}"
+            "virtualAddress": "{{va}}"
           },
-          {{/virtual_address}}
+          {{/vip}}
           "{{app_name}}": {
             "layer4": "tcp",
             "pool": "pool_{{app_name}}",
@@ -311,9 +294,9 @@ template: |
                 "use": "{{app_name}}-tcp"
             },
             "virtualAddresses": [
-              { "use": "sa_{{virtual_address}}" }
+              { "use": "sa_{{#vip}}{{va}}{{/vip}}" }
             ],
-            "virtualPort": {{#virtual_address}}{{virtual_port}}{{/virtual_address}},
+            "virtualPort": {{#vip}}{{vp}}{{/vip}},
             "snat": "auto"
           },
           "pool_{{app_name}}": {
@@ -396,5 +379,6 @@ template: |
           }
         }
       }
-    }
+    },
+    "note": "https://json-editor.github.io/json-editor/?data=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"
   }
